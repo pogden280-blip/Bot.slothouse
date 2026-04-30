@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTP BOT ANALYST - Sinais de Casino</title>
+    <!-- Tailwind CSS 3.4 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        :root {
+            --color-primary: #00ff88;
+            --color-secondary: #00d4ff;
+            --color-dark: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--color-dark);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glow-green {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes scan {
+            from { top: -10%; }
+            to { top: 110%; }
+        }
+
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+            animation: scan 2s linear infinite;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .rtp-bar-inner {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-pulse-soft {
+            animation: pulse-soft 2s infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2a2a2a;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00ff88',
+                        secondary: '#00d4ff',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="selection:bg-primary selection:text-dark">
+    <!-- Background Glow -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 overflow-hidden -z-10">
+        <div class="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-secondary rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="max-w-lg mx-auto px-4 py-8 relative">
+        <!-- Header -->
+        <header class="flex flex-col items-center mb-10 text-center">
+            <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20 glow-green">
+                <i data-lucide="bot" class="w-10 h-10 text-primary"></i>
+            </div>
+            <h1 class="text-3xl font-black tracking-tighter mb-1 uppercase italic glow-text">
+                RTP <span class="text-primary tracking-widest">BOT</span> ANALYST
+            </h1>
+            <p class="text-gray-400 text-xs flex items-center gap-2 uppercase tracking-widest font-bold">
+                <i data-lucide="shield-check" class="w-4 h-4 text-primary"></i>
+                Tecnologia de Análise IA
+            </p>
+        </header>
+
+        <!-- Live Status Card -->
+        <div id="status-card" class="glass-card rounded-3xl p-6 mb-8 relative overflow-hidden">
+            <div id="scanner" class="scanner-line hidden"></div>
+            
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2">
+                    <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(0,255,136,0.8)]"></div>
+                    <span id="status-text" class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
+                        Analista Online
+                    </span>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] text-gray-500 font-mono font-bold">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span id="last-update">00:00:00</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-black/40 rounded-2xl p-4 border border-white/5">
+                    <i data-lucide="trending-up" class="w-5 h-5 text-secondary mb-2"></i>
+                    <div id="max-rtp" class="text-2xl font-black text-white italic">98.4%</div>
+                    <div class="text-[9px] text-gray-500 uppercase font-black tracking-tighter">Máximo Encontrado</div>
+                </div>
+                <div class="bg-black/40 rounded-2xl p-4 border border-white/5">
+                    <i data-lucide="zap" class="w-5 h-5 text-primary mb-2"></i>
+                    <div id="bugs-count" class="text-2xl font-black text-white italic">14</div>
+                    <div class="text-[9px] text-gray-500 uppercase font-black tracking-tighter">Eventos Detectados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Title -->
+        <div class="flex items-center justify-between mb-4 px-1">
+            <h2 class="text-xs font-black uppercase tracking-widest text-gray-300 flex items-center gap-2 italic">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 text-primary"></i>
+                Sinais Identificados
+            </h2>
+            <div class="text-[9px] text-primary bg-primary/10 px-2 py-1 rounded-lg border border-primary/20 font-bold uppercase tracking-widest">
+                Provider: PG Soft
+            </div>
+        </div>
+
+        <!-- Game List Container -->
+        <div id="game-list" class="space-y-4 mb-10">
+            <!-- Games will be injected here -->
+        </div>
+
+        <!-- Mega CTA -->
+        <section class="bg-gradient-to-br from-primary/20 to-secondary/10 rounded-[2.5rem] p-8 text-center border border-primary/20 relative overflow-hidden group">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_center,_var(--color-primary)_0%,_transparent_70%)]"></div>
+            <i data-lucide="target" class="w-12 h-12 text-primary mx-auto mb-4 group-hover:scale-110 transition-transform"></i>
+            <h2 class="text-2xl font-black mb-2 italic">ATIVAR O <span class="text-primary">MODO BUG?</span></h2>
+            <p class="text-gray-400 text-xs mb-8 uppercase tracking-wider font-bold leading-relaxed">Cadastre-se na plataforma verificada para sincronizar com nossos sinais.</p>
+            
+            <a href="https://seulinkaqui.com" target="_blank" class="block w-full bg-primary text-dark font-black py-5 rounded-2xl hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all uppercase italic tracking-[0.1em] flex items-center justify-center gap-3 active:scale-95">
+                CRIAR CONTA E RECEBER SINAIS
+                <i data-lucide="external-link" class="w-5 h-5"></i>
+            </a>
+            <p class="mt-4 text-[9px] text-gray-600 uppercase tracking-widest font-black italic">Apenas para maiores de 18 anos • Jogo Responsável</p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center pb-8">
+            <div class="w-12 h-1 bg-white/10 mx-auto rounded-full mb-6"></div>
+            <p class="text-[9px] uppercase font-black tracking-[0.4em] text-gray-700">Analytics Bot Technology 2026</p>
+        </footer>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        const GAMES_DATA = [
+            {
+                id: '1',
+                name: 'Fortune Tiger',
+                rtp: 97.4,
+                status: 'ALTO',
+                image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&auto=format&q=80',
+                link: 'https://seulinkaqui.com/tiger'
+            },
+            {
+                id: '2',
+                name: 'Dragon Hatch',
+                rtp: 96.2,
+                status: 'ESTÁVEL',
+                image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&auto=format&q=80',
+                link: 'https://seulinkaqui.com/dragon'
+            },
+            {
+                id: '3',
+                name: 'Gates of Olympus',
+                rtp: 98.1,
+                status: 'ALTO',
+                image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&auto=format&q=80',
+                link: 'https://seulinkaqui.com/olympus'
+            },
+            {
+                id: '4',
+                name: 'Fortune Ox',
+                rtp: 95.8,
+                status: 'ESTÁVEL',
+                image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&auto=format&q=80',
+                link: 'https://seulinkaqui.com/ox'
+            }
+        ];
+
+        function init() {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+            
+            const gameList = document.getElementById('game-list');
+            const lastUpdateLabel = document.getElementById('last-update');
+            const scanner = document.getElementById('scanner');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const maxRtpLabel = document.getElementById('max-rtp');
+            const bugsLabel = document.getElementById('bugs-count');
+
+            // Initial Render
+            renderGames(GAMES_DATA);
+            updateTimestamp();
+
+            // Simalate continuous updates
+            setInterval(() => {
+                triggerScan();
+            }, 12000);
+
+            function updateTimestamp() {
+                const now = new Date();
+                lastUpdateLabel.innerText = now.toLocaleTimeString('pt-BR');
+            }
+
+            function renderGames(data) {
+                gameList.innerHTML = '';
+                data.forEach(game => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-card rounded-2xl overflow-hidden group';
+                    card.innerHTML = `
+                        <div class="p-4 flex items-center gap-4">
+                            <div class="relative shrink-0">
+                                <img src="${game.image}" alt="${game.name}" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-white mb-1 truncate uppercase tracking-tight">${game.name}</h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                                        <div class="rtp-bar-inner h-full ${game.rtp > 97 ? 'bg-primary shadow-[0_0_8px_rgba(0,255,136,0.4)]' : 'bg-secondary shadow-[0_0_8px_rgba(0,212,255,0.4)]'}" style="width: ${game.rtp}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-black text-primary">${game.rtp}%</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
+                                        RTP ${game.status}
+                                    </span>
+                                    <span class="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Sinal Confirmado</span>
+                                </div>
+                            </div>
+
+                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all">
+                                <i data-lucide="external-link" class="w-5 h-5"></i>
+                            </a>
+                        </div>
+                    `;
+                    gameList.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            function triggerScan() {
+                // UI feedback for scanning
+                scanner.classList.remove('hidden');
+                statusDot.classList.remove('bg-primary');
+                statusDot.classList.add('bg-yellow-400', 'animate-pulse');
+                statusText.innerText = 'Escanenando Provedores...';
+                statusText.classList.add('text-yellow-400');
+
+                // Update metrics with slight delay to feel "real"
+                setTimeout(() => {
+                    const newGames = GAMES_DATA.map(game => ({
+                        ...game,
+                        rtp: parseFloat((Math.random() * (99 - 94) + 94).toFixed(1)),
+                        status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL'
+                    }));
+
+                    const highestRtp = Math.max(...newGames.map(g => g.rtp));
+                    maxRtpLabel.innerText = highestRtp.toFixed(1) + '%';
+                    bugsLabel.innerText = Math.floor(Math.random() * (20 - 8) + 8);
+
+                    renderGames(newGames);
+                    updateTimestamp();
+
+                    // Reset UI
+                    scanner.classList.add('hidden');
+                    statusDot.classList.remove('bg-yellow-400', 'animate-pulse');
+                    statusDot.classList.add('bg-primary');
+                    statusText.innerText = 'Analista Online';
+                    statusText.classList.remove('text-yellow-400');
+                    statusText.classList.add('text-gray-400');
+                }, 2500);
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
