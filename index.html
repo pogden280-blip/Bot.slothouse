@@ -117,8 +117,8 @@
     <div class="max-w-lg mx-auto px-4 py-8 relative">
         <!-- Admin Modal -->
         <div id="admin-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 hidden backdrop-blur-sm">
-            <div class="glass-card w-full max-w-sm rounded-[2rem] p-8 border-primary/30 relative">
-                <button onclick="closeAdmin()" class="absolute top-6 right-6 text-gray-500 hover:text-white">
+            <div class="glass-card w-full max-w-sm rounded-[2rem] p-6 border-primary/30 relative max-h-[90vh] flex flex-col shadow-2xl">
+                <button onclick="closeAdmin()" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-2">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
                 <div id="login-view">
@@ -126,12 +126,12 @@
                     <input type="password" id="admin-pass" placeholder="Digite a senha..." class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-4 mb-4 focus:border-primary outline-none text-center font-mono tracking-widest">
                     <button onclick="tryLogin()" class="w-full bg-primary text-dark font-black py-4 rounded-xl active:scale-95 transition-all uppercase italic">Entrar</button>
                 </div>
-                <div id="admin-view" class="hidden">
-                    <h2 class="text-xl font-black mb-6 uppercase italic text-center">Configurar <span class="text-primary tracking-widest">LINKS</span></h2>
-                    <div id="links-editor" class="space-y-4 mb-6 max-h-[300px] overflow-y-auto px-1">
+                <div id="admin-view" class="hidden flex flex-col h-full">
+                    <h2 class="text-xl font-black mb-6 uppercase italic text-center shrink-0">Configurar <span class="text-primary tracking-widest">LINKS</span></h2>
+                    <div id="links-editor" class="space-y-4 mb-6 overflow-y-auto pr-1 flex-1 custom-scrollbar">
                         <!-- Inputs will be injected here -->
                     </div>
-                    <button onclick="saveLinks()" class="w-full bg-primary text-dark font-black py-4 rounded-xl active:scale-95 transition-all uppercase italic">Salvar Alterações</button>
+                    <button onclick="saveLinks()" class="w-full bg-primary text-dark font-black py-4 rounded-xl active:scale-95 transition-all uppercase italic shrink-0">Salvar Alterações</button>
                 </div>
             </div>
         </div>
@@ -301,15 +301,25 @@
         function setupAdminList() {
             const container = document.getElementById('links-editor');
             if (!container) return;
-            let html = `<div class="mb-6 p-4 bg-primary/10 rounded-2xl border border-primary/20">
+            
+            // Garantir que LINK_POOL tenha 10 itens
+            const poolToRender = LINK_POOL.length >= 10 ? LINK_POOL : [...LINK_POOL, ...Array(10 - LINK_POOL.length).fill('https://seullink.com')];
+            
+            let html = `<div class="mb-4 p-4 bg-primary/10 rounded-2xl border border-primary/20">
                 <p class="text-[10px] text-primary uppercase font-black mb-4 italic text-center">Configurar Pool de 10 Links Aleatórios</p>
-                <div class="grid grid-cols-1 gap-3">`;
-            LINK_POOL.forEach((link, idx) => {
-                html += `<div>
-                    <label class="text-[9px] text-gray-500 uppercase font-black block mb-1">Slot de Link ${idx + 1}</label>
-                    <input type="text" id="pool-link-${idx}" value="${link}" class="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs outline-none focus:border-primary text-gray-300">
-                </div>`;
+                <div class="grid grid-cols-1 gap-4">`;
+            
+            poolToRender.forEach((link, idx) => {
+                if (idx < 10) {
+                    html += `<div class="group">
+                        <label class="text-[9px] text-gray-500 uppercase font-black block mb-1 ml-1 group-focus-within:text-primary transition-colors">Slot de Link ${idx + 1}</label>
+                        <input type="text" id="pool-link-${idx}" value="${link}" 
+                            class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50 text-gray-300 transition-all focus:bg-black/80"
+                            placeholder="https://suaplataforma.com/link-${idx + 1}">
+                    </div>`;
+                }
             });
+            
             html += `</div></div>`;
             container.innerHTML = html;
         }
@@ -393,62 +403,80 @@
 
             function updateTimestamp() { lastUpdateLabel.innerText = new Date().toLocaleTimeString('pt-BR'); }
 
-            function renderGames(data) {
-                gameList.innerHTML = '';
-                data.forEach((game, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'glass-card rounded-2xl overflow-hidden group opacity-0';
-                    card.style.animation = `fadeInUp 0.4s ease forwards ${index * 0.1}s`;
-                    card.innerHTML = `
-                        <div class="p-4 flex items-center gap-4">
-                            <div class="relative shrink-0">
-                                <img src="${game.image}" alt="${game.name}" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="font-black text-white mb-1 truncate uppercase tracking-tight text-sm italic">
-                                    ${game.name} 
-                                    <span class="text-[10px] text-primary lowercase font-normal opacity-80 block md:inline md:ml-1">— ${game.provider}</span>
-                                </h3>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
-                                        <div class="rtp-bar-inner h-full ${game.rtp > 97 ? 'bg-primary shadow-[0_0_8px_rgba(0,255,136,0.4)]' : 'bg-secondary shadow-[0_0_8px_rgba(0,212,255,0.4)]'}" style="width: ${game.rtp}%"></div>
-                                    </div>
-                                    <span class="text-[10px] font-mono font-black text-primary">${game.rtp}%</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
-                                        RTP ${game.status}
-                                    </span>
-                                    <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
-                                </div>
-                            </div>
-                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
-                                <i data-lucide="external-link" class="w-5 h-5"></i>
-                            </a>
+        function renderGames(data) {
+            const gameList = document.getElementById('game-list');
+            if (!gameList) return;
+            
+            gameList.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+
+            data.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-2xl overflow-hidden group opacity-0';
+                card.style.animation = `fadeInUp 0.4s ease forwards ${index * 0.08}s`;
+                card.innerHTML = `
+                    <div class="p-4 flex items-center gap-4">
+                        <div class="relative shrink-0">
+                            <img src="${game.image}" alt="${game.name}" loading="lazy" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
                         </div>
-                    `;
-                    gameList.appendChild(card);
-                });
-                lucide.createIcons();
-            }
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-black text-white mb-1 truncate uppercase tracking-tight text-sm italic">
+                                ${game.name} 
+                                <span class="text-[10px] text-primary lowercase font-normal opacity-80 block md:inline md:ml-1">— ${game.provider}</span>
+                            </h3>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                                    <div class="rtp-bar-inner h-full ${game.rtp > 97 ? 'bg-primary shadow-[0_0_8px_rgba(0,255,136,0.4)]' : 'bg-secondary shadow-[0_0_8px_rgba(0,212,255,0.4)]'}" style="width: ${game.rtp}%"></div>
+                                </div>
+                                <span class="text-[10px] font-mono font-black text-primary">${game.rtp}%</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
+                                    RTP ${game.status}
+                                </span>
+                                <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
+                            </div>
+                        </div>
+                        <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                `;
+                fragment.appendChild(card);
+            });
+            
+            gameList.appendChild(fragment);
+            // Otimização: Apenas processar ícones dentro do container da lista
+            lucide.createIcons({ root: gameList });
+        }
 
             window.triggerScan = function() {
                 const btn = document.getElementById('update-btn');
+                const scanner = document.getElementById('scanner');
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                const maxRtpLabel = document.getElementById('max-rtp');
+                const bugsLabel = document.getElementById('bugs-count');
+
                 if (btn && btn.classList.contains('opacity-50')) return;
 
                 if (btn) btn.classList.add('opacity-50', 'pointer-events-none');
                 
-                scanner.classList.remove('hidden');
-                statusDot.classList.remove('bg-primary');
-                statusDot.classList.add('bg-yellow-400', 'animate-pulse');
-                statusText.innerText = 'Escanenando Provedores...';
-                statusText.classList.remove('text-gray-400');
-                statusText.classList.add('text-yellow-400');
+                if (scanner) scanner.classList.remove('hidden');
+                if (statusDot) {
+                    statusDot.classList.remove('bg-primary');
+                    statusDot.classList.add('bg-yellow-400', 'animate-pulse');
+                }
+                if (statusText) {
+                    statusText.innerText = 'Escanenando Provedores...';
+                    statusText.classList.remove('text-gray-400');
+                    statusText.classList.add('text-yellow-400');
+                }
 
                 // Feedback visual de saída
                 const cards = document.querySelectorAll('#game-list > div');
-                cards.forEach(c => c.style.opacity = '0.3');
+                cards.forEach(c => c.style.opacity = '0.2');
 
                 setTimeout(() => {
                     const shuffledGames = [...ALL_GAMES_POOL].sort(() => Math.random() - 0.5);
@@ -464,21 +492,25 @@
                         link: shuffledLinks[idx % shuffledLinks.length]
                     }));
 
-                    maxRtpLabel.innerText = Math.max(...GAMES_DATA.map(g => g.rtp)).toFixed(1) + '%';
-                    bugsLabel.innerText = Math.floor(Math.random() * (20 - 8) + 8);
+                    if (maxRtpLabel) maxRtpLabel.innerText = Math.max(...GAMES_DATA.map(g => g.rtp)).toFixed(1) + '%';
+                    if (bugsLabel) bugsLabel.innerText = Math.floor(Math.random() * (20 - 8) + 8);
                     
                     renderGames(GAMES_DATA);
                     updateTimestamp();
                     
-                    scanner.classList.add('hidden');
-                    statusDot.classList.remove('bg-yellow-400', 'animate-pulse');
-                    statusDot.classList.add('bg-primary');
-                    statusText.innerText = 'Analista Online';
-                    statusText.classList.remove('text-yellow-400');
-                    statusText.classList.add('text-gray-400');
+                    if (scanner) scanner.classList.add('hidden');
+                    if (statusDot) {
+                        statusDot.classList.remove('bg-yellow-400', 'animate-pulse');
+                        statusDot.classList.add('bg-primary');
+                    }
+                    if (statusText) {
+                        statusText.innerText = 'Analista Online';
+                        statusText.classList.remove('text-yellow-400');
+                        statusText.classList.add('text-gray-400');
+                    }
                     
                     if (btn) btn.classList.remove('opacity-50', 'pointer-events-none');
-                }, 2000); // Reduzi de 2.5s para 2s para ser mais ágil
+                }, 1800); 
             }
         }
         window.onload = init;
