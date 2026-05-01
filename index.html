@@ -60,6 +60,11 @@
             pointer-events: none;
         }
 
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .rtp-bar-inner {
             transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -249,8 +254,11 @@
                 });
                 const data = await response.json();
                 if (data.record && data.record.links) {
-                    LINK_POOL = data.record.links;
-                    localStorage.setItem('rtp_bot_link_pool', JSON.stringify(LINK_POOL));
+                    const newPool = data.record.links;
+                    if (JSON.stringify(newPool) !== JSON.stringify(LINK_POOL)) {
+                        LINK_POOL = newPool;
+                        localStorage.setItem('rtp_bot_link_pool', JSON.stringify(LINK_POOL));
+                    }
                     return true;
                 }
             } catch (e) { console.error("Cloud Error:", e); }
@@ -334,11 +342,11 @@
             }
         };
 
-        async function init() {
+        function init() {
             lucide.createIcons();
             
-            // Tenta buscar links atualizados da nuvem
-            await fetchCloudLinks();
+            // Busca links da nuvem em segundo plano sem bloquear a interface
+            fetchCloudLinks();
 
             const gameList = document.getElementById('game-list');
             const lastUpdateLabel = document.getElementById('last-update');
@@ -351,11 +359,9 @@
             const mainCtaLink = document.getElementById('main-cta-link');
             const passInput = document.getElementById('admin-pass');
 
-            // 1. Sorteio de 4 jogos aleatórios mantendo vínculo Nome-Provedor
+            // Renderização inicial imediata baseada no cache local
             const shuffledGames = [...ALL_GAMES_POOL].sort(() => Math.random() - 0.5);
             const selectedGames = shuffledGames.slice(0, 4);
-
-            // 2. Distribuição aleatória de links do pool
             const activeLinks = LINK_POOL.filter(l => l.trim() !== '');
             const shuffledLinks = (activeLinks.length > 0 ? activeLinks : ['https://seulinkaqui.com']).sort(() => Math.random() - 0.5);
 
@@ -370,26 +376,29 @@
                 mainCtaLink.href = shuffledLinks[Math.floor(Math.random() * shuffledLinks.length)];
             }
 
-            // Initial Render
             renderGames(GAMES_DATA);
             updateTimestamp();
 
             passInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') window.tryLogin(); });
 
             let pressTimer;
-            robotIcon.addEventListener('mousedown', () => { pressTimer = setTimeout(() => { document.getElementById('admin-modal').classList.remove('hidden'); }, 1500); });
-            robotIcon.addEventListener('mouseup', () => clearTimeout(pressTimer));
-            robotIcon.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-            robotIcon.addEventListener('touchstart', (e) => { e.preventDefault(); pressTimer = setTimeout(() => { document.getElementById('admin-modal').classList.remove('hidden'); }, 1500); });
-            robotIcon.addEventListener('touchend', () => clearTimeout(pressTimer));
+            const startPress = () => { pressTimer = setTimeout(() => { document.getElementById('admin-modal').classList.remove('hidden'); }, 1500); };
+            const endPress = () => clearTimeout(pressTimer);
+
+            robotIcon.addEventListener('mousedown', startPress);
+            robotIcon.addEventListener('mouseup', endPress);
+            robotIcon.addEventListener('mouseleave', endPress);
+            robotIcon.addEventListener('touchstart', startPress, {passive: true});
+            robotIcon.addEventListener('touchend', endPress);
 
             function updateTimestamp() { lastUpdateLabel.innerText = new Date().toLocaleTimeString('pt-BR'); }
 
             function renderGames(data) {
                 gameList.innerHTML = '';
-                data.forEach(game => {
+                data.forEach((game, index) => {
                     const card = document.createElement('div');
-                    card.className = 'glass-card rounded-2xl overflow-hidden group';
+                    card.className = 'glass-card rounded-2xl overflow-hidden group opacity-0';
+                    card.style.animation = `fadeInUp 0.4s ease forwards ${index * 0.1}s`;
                     card.innerHTML = `
                         <div class="p-4 flex items-center gap-4">
                             <div class="relative shrink-0">
@@ -414,7 +423,7 @@
                                     <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
                                 </div>
                             </div>
-                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all">
+                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
                                 <i data-lucide="external-link" class="w-5 h-5"></i>
                             </a>
                         </div>
@@ -437,8 +446,11 @@
                 statusText.classList.remove('text-gray-400');
                 statusText.classList.add('text-yellow-400');
 
+                // Feedback visual de saída
+                const cards = document.querySelectorAll('#game-list > div');
+                cards.forEach(c => c.style.opacity = '0.3');
+
                 setTimeout(() => {
-                    // Sorteia novos jogos a cada atualização manual
                     const shuffledGames = [...ALL_GAMES_POOL].sort(() => Math.random() - 0.5);
                     const selectedGames = shuffledGames.slice(0, 4);
                     
@@ -466,7 +478,7 @@
                     statusText.classList.add('text-gray-400');
                     
                     if (btn) btn.classList.remove('opacity-50', 'pointer-events-none');
-                }, 2500);
+                }, 2000); // Reduzi de 2.5s para 2s para ser mais ágil
             }
         }
         window.onload = init;
