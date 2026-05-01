@@ -394,7 +394,7 @@
                 status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
                 link: shuffledLinks[idx % shuffledLinks.length],
                 minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
-                recommendedBet: (Math.random() * (40 - 0.4) + 0.4).toFixed(2)
+                recommendedBet: (Math.random() * (5 - 0.4) + 0.4).toFixed(2)
             }));
 
             if (mainCtaLink) {
@@ -459,14 +459,14 @@
                             </a>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/5">
-                            <div class="bg-black/30 p-2 rounded-xl border border-white/5">
-                                <p class="text-[7px] text-gray-500 uppercase font-black mb-1 tracking-tighter">Depósito Recomendado</p>
-                                <p class="text-xs font-black text-white italic">R$ ${game.minDeposit},00</p>
+                        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/10">
+                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-inner">
+                                <p class="text-[8px] text-primary uppercase font-black mb-1 tracking-wider opacity-80">Depósito Recomendado</p>
+                                <p class="text-sm font-black text-white italic tracking-tight">R$ ${game.minDeposit},00</p>
                             </div>
-                            <div class="bg-black/30 p-2 rounded-xl border border-white/5 text-right">
-                                <p class="text-[7px] text-gray-500 uppercase font-black mb-1 tracking-tighter">Bet Sugerida</p>
-                                <p class="text-xs font-black text-primary italic">R$ ${game.recommendedBet.replace('.', ',')}</p>
+                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 text-right shadow-inner">
+                                <p class="text-[8px] text-primary uppercase font-black mb-1 tracking-wider opacity-80">Bet Sugerida</p>
+                                <p class="text-sm font-black text-primary italic tracking-tight">R$ ${game.recommendedBet.replace('.', ',')}</p>
                             </div>
                         </div>
                     </div>
@@ -517,7 +517,7 @@
                         status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
                         link: shuffledLinks[idx % shuffledLinks.length],
                         minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
-                        recommendedBet: (Math.random() * (40 - 0.4) + 0.4).toFixed(2)
+                        recommendedBet: (Math.random() * (5 - 0.4) + 0.4).toFixed(2)
                     }));
 
                     if (maxRtpLabel) maxRtpLabel.innerText = Math.max(...GAMES_DATA.map(g => g.rtp)).toFixed(1) + '%';
