@@ -243,16 +243,16 @@
     <script>
         // Pool de 22 Jogos - Mantendo Jogo e Provedor Vinculados
         const ALL_PROVIDERS = [
-            { name: 'Pragmatic Play', image: 'https://images.unsplash.com/photo-1614332287897-cdc485fa562d?q=80&w=200&auto=format&fit=crop' },
-            { name: 'TadaGaming', image: 'https://images.unsplash.com/photo-1550745165-9bc0b25272a7?q=80&w=200&auto=format&fit=crop' },
-            { name: 'PG', image: 'https://images.unsplash.com/photo-1635322966219-b75ed372eb01?q=80&w=200&auto=format&fit=crop' },
-            { name: 'G759', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200&auto=format&fit=crop' },
-            { name: 'Playson', image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=200&auto=format&fit=crop' },
-            { name: 'FaChai', image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=200&auto=format&fit=crop' },
-            { name: 'RubyPlay', image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=200&auto=format&fit=crop' },
-            { name: 'FastSpin', image: 'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?q=80&w=200&auto=format&fit=crop' },
-            { name: 'TopPlayer', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' },
-            { name: 'JDB', image: 'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?q=80&w=200&auto=format&fit=crop' }
+            { name: 'Pragmatic Play', initials: 'PP' },
+            { name: 'TadaGaming', initials: 'tada' },
+            { name: 'PG', initials: 'PG' },
+            { name: 'G759', initials: 'G759' },
+            { name: 'Playson', initials: 'Play' },
+            { name: 'FaChai', initials: 'FC' },
+            { name: 'RubyPlay', initials: 'RP' },
+            { name: 'FastSpin', initials: 'FS' },
+            { name: 'TopPlayer', initials: 'TP' },
+            { name: 'JDB', initials: 'JDB' }
         ];
 
         let GAMES_DATA = [];
@@ -461,8 +461,9 @@
                     <div class="p-4 flex flex-col gap-4">
                         <div class="flex items-center gap-4">
                             <div class="relative shrink-0">
-                                <img src="${game.image}" alt="${game.name}" loading="lazy" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
+                                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center shadow-inner group-hover:border-primary transition-all duration-500">
+                                    <span class="text-primary font-black text-xl italic uppercase tracking-tighter">${game.initials}</span>
+                                </div>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-[9px] text-primary uppercase font-black tracking-widest mb-1 opacity-60">Provedor Filtrado</p>
