@@ -392,7 +392,9 @@
                 ...game,
                 rtp: parseFloat((Math.random() * (99 - 94) + 94).toFixed(1)),
                 status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
-                link: shuffledLinks[idx % shuffledLinks.length]
+                link: shuffledLinks[idx % shuffledLinks.length],
+                minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
+                recommendedBet: (Math.random() * (40 - 0.4) + 0.4).toFixed(2)
             }));
 
             if (mainCtaLink) {
@@ -428,32 +430,45 @@
                 card.className = 'glass-card rounded-2xl overflow-hidden group opacity-0';
                 card.style.animation = `fadeInUp 0.4s ease forwards ${index * 0.08}s`;
                 card.innerHTML = `
-                    <div class="p-4 flex items-center gap-4">
-                        <div class="relative shrink-0">
-                            <img src="${game.image}" alt="${game.name}" loading="lazy" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-black text-white mb-1 truncate uppercase tracking-tight text-sm italic">
-                                ${game.name} 
-                                <span class="text-[10px] text-primary lowercase font-normal opacity-80 block md:inline md:ml-1">— ${game.provider}</span>
-                            </h3>
-                            <div class="flex items-center gap-2 mb-2">
-                                <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
-                                    <div class="rtp-bar-inner h-full ${game.rtp > 97 ? 'bg-primary shadow-[0_0_8px_rgba(0,255,136,0.4)]' : 'bg-secondary shadow-[0_0_8px_rgba(0,212,255,0.4)]'}" style="width: ${game.rtp}%"></div>
+                    <div class="p-4 flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="relative shrink-0">
+                                <img src="${game.image}" alt="${game.name}" loading="lazy" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-black text-white mb-1 truncate uppercase tracking-tight text-sm italic">
+                                    ${game.name} 
+                                    <span class="text-[10px] text-primary lowercase font-normal opacity-80 block md:inline md:ml-1">— ${game.provider}</span>
+                                </h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                                        <div class="rtp-bar-inner h-full ${game.rtp > 97 ? 'bg-primary shadow-[0_0_8px_rgba(0,255,136,0.4)]' : 'bg-secondary shadow-[0_0_8px_rgba(0,212,255,0.4)]'}" style="width: ${game.rtp}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-black text-primary">${game.rtp}%</span>
                                 </div>
-                                <span class="text-[10px] font-mono font-black text-primary">${game.rtp}%</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
+                                        RTP ${game.status}
+                                    </span>
+                                    <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
-                                    RTP ${game.status}
-                                </span>
-                                <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
+                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
+                                <i data-lucide="external-link" class="w-5 h-5"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/5">
+                            <div class="bg-black/30 p-2 rounded-xl border border-white/5">
+                                <p class="text-[7px] text-gray-500 uppercase font-black mb-1 tracking-tighter">Depósito Recomendado</p>
+                                <p class="text-xs font-black text-white italic">R$ ${game.minDeposit},00</p>
+                            </div>
+                            <div class="bg-black/30 p-2 rounded-xl border border-white/5 text-right">
+                                <p class="text-[7px] text-gray-500 uppercase font-black mb-1 tracking-tighter">Bet Sugerida</p>
+                                <p class="text-xs font-black text-primary italic">R$ ${game.recommendedBet.replace('.', ',')}</p>
                             </div>
                         </div>
-                        <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
-                            <i data-lucide="external-link" class="w-5 h-5"></i>
-                        </a>
                     </div>
                 `;
                 fragment.appendChild(card);
@@ -500,7 +515,9 @@
                         ...game,
                         rtp: parseFloat((Math.random() * (99 - 94) + 94).toFixed(1)),
                         status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
-                        link: shuffledLinks[idx % shuffledLinks.length]
+                        link: shuffledLinks[idx % shuffledLinks.length],
+                        minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
+                        recommendedBet: (Math.random() * (40 - 0.4) + 0.4).toFixed(2)
                     }));
 
                     if (maxRtpLabel) maxRtpLabel.innerText = Math.max(...GAMES_DATA.map(g => g.rtp)).toFixed(1) + '%';
