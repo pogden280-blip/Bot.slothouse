@@ -115,6 +115,34 @@
     </div>
 
     <div class="max-w-lg mx-auto px-4 py-8 relative">
+        <!-- Onboarding Modal -->
+        <div id="onboarding-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 transition-all duration-500 overflow-y-auto">
+            <div class="glass-card w-full max-w-sm rounded-[2rem] p-8 border-primary/40 relative shadow-[0_0_50px_rgba(0,255,136,0.2)] animate-in fade-in zoom-in duration-300">
+                <div class="flex justify-center mb-6">
+                    <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center border border-primary/30 animate-pulse">
+                        <i data-lucide="info" class="w-8 h-8 text-primary"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-black text-white text-center uppercase italic mb-6 tracking-tight">
+                    Aviso <span class="text-primary italic">Estratégico</span>
+                </h2>
+                <div class="space-y-4 text-gray-300 text-sm leading-relaxed text-center font-medium italic">
+                    <p>
+                        Ao entrar no Bot, olhe quais provedores estão com o RTP mais alto, escolha um <span class="text-primary font-bold">PROVEDOR</span>, você será redirecionado para a casa.
+                    </p>
+                    <p>
+                        Ao efetuar o depósito, <span class="text-white font-bold">não opere em outro provedor</span> que não seja o indicado. Pegue 1 bônus ou um grande ganho apenas em cada jogo daquele provedor.
+                    </p>
+                    <p class="bg-primary/10 p-3 rounded-xl border border-primary/20 text-primary">
+                        Indicado efetuar o saque assim que tiver ganho em 3 jogos.
+                    </p>
+                </div>
+                <button onclick="confirmOnboarding()" class="w-full bg-primary text-dark font-black py-4 rounded-2xl mt-8 active:scale-95 transition-all uppercase italic shadow-[0_4px_15px_rgba(0,255,136,0.3)]">
+                    Eu Entendi
+                </button>
+            </div>
+        </div>
+
         <!-- Admin Modal -->
         <div id="admin-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 hidden backdrop-blur-sm">
             <div class="glass-card w-full max-w-sm rounded-[2rem] p-6 border-primary/30 relative max-h-[90vh] flex flex-col shadow-2xl">
@@ -214,29 +242,17 @@
     <!-- Application Logic -->
     <script>
         // Pool de 22 Jogos - Mantendo Jogo e Provedor Vinculados
-        const ALL_GAMES_POOL = [
-            { name: '3 pots riches', provider: 'playson', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&q=80' },
-            { name: 'lucky jaguar 500', provider: 'tada games', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'Dragon hacht 2', provider: 'PG', image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&q=80' },
-            { name: 'wild bounty showdown', provider: 'PG', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'Gold party', provider: 'PP', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'lucky monkey', provider: 'PP', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'Lucky tiger', provider: 'tada', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'luky jaguar 2', provider: 'tada', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&q=80' },
-            { name: 'Luckycrown', provider: 'king game', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'caishen 2', provider: 'PP', image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&q=80' },
-            { name: 'pinata wins', provider: 'PG', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'facaishen', provider: 'g759 slot', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&q=80' },
-            { name: 'rabits grace', provider: 'g759slot', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'fortune sheep', provider: 'g759slot', image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&q=80' },
-            { name: 'sabor mexicano', provider: 'g759slot', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'dragons grace', provider: 'g759 slot', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'coin strike', provider: 'playson', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&q=80' },
-            { name: 'fire temple', provider: 'playson', image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&q=80' },
-            { name: '4 pots riches', provider: 'playson', image: 'https://images.unsplash.com/photo-1596838132731-dd9e771b2d07?w=200&h=200&fit=crop&q=80' },
-            { name: 'wildbison charge', provider: 'PP', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop&q=80' },
-            { name: 'fire portal', provider: 'PP', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=200&fit=crop&q=80' },
-            { name: 'wild walker', provider: 'PP', image: 'https://images.unsplash.com/photo-1614027164847-1b5c91ebbe47?w=200&h=200&fit=crop&q=80' }
+        const ALL_PROVIDERS = [
+            { name: 'Pragmatic Play', image: 'https://images.unsplash.com/photo-1614332287897-cdc485fa562d?q=80&w=200&auto=format&fit=crop' },
+            { name: 'TadaGaming', image: 'https://images.unsplash.com/photo-1550745165-9bc0b25272a7?q=80&w=200&auto=format&fit=crop' },
+            { name: 'PG', image: 'https://images.unsplash.com/photo-1635322966219-b75ed372eb01?q=80&w=200&auto=format&fit=crop' },
+            { name: 'G759', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200&auto=format&fit=crop' },
+            { name: 'Playson', image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=200&auto=format&fit=crop' },
+            { name: 'FaChai', image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=200&auto=format&fit=crop' },
+            { name: 'RubyPlay', image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=200&auto=format&fit=crop' },
+            { name: 'FastSpin', image: 'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?q=80&w=200&auto=format&fit=crop' },
+            { name: 'TopPlayer', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' },
+            { name: 'JDB', image: 'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?q=80&w=200&auto=format&fit=crop' }
         ];
 
         let GAMES_DATA = [];
@@ -293,6 +309,13 @@
         }
 
         // Funções Globais
+        window.confirmOnboarding = function() {
+            const modal = document.getElementById('onboarding-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+            sessionStorage.setItem('bot_china_onboarding_seen', 'true');
+        };
+
         window.closeAdmin = function() {
             document.getElementById('admin-modal').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
@@ -369,6 +392,11 @@
         function init() {
             lucide.createIcons();
             
+            // Verifica se já viu o onboarding nesta sessão
+            if (sessionStorage.getItem('bot_china_onboarding_seen')) {
+                document.getElementById('onboarding-modal').classList.add('hidden');
+            }
+
             // Busca links da nuvem em segundo plano sem bloquear a interface
             fetchCloudLinks();
 
@@ -384,17 +412,17 @@
             const passInput = document.getElementById('admin-pass');
 
             // Renderização inicial imediata baseada no cache local
-            const shuffledGames = [...ALL_GAMES_POOL].sort(() => Math.random() - 0.5);
-            const selectedGames = shuffledGames.slice(0, 4);
+            const shuffledProviders = [...ALL_PROVIDERS].sort(() => Math.random() - 0.5);
+            const selectedProviders = shuffledProviders.slice(0, 4);
             const shuffledLinks = getActiveLinks().sort(() => Math.random() - 0.5);
 
-            GAMES_DATA = selectedGames.map((game, idx) => ({
-                ...game,
+            GAMES_DATA = selectedProviders.map((provider, idx) => ({
+                ...provider,
                 rtp: parseFloat((Math.random() * (99 - 94) + 94).toFixed(1)),
                 status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
                 link: shuffledLinks[idx % shuffledLinks.length],
                 minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
-                recommendedBet: (Math.random() * (5 - 0.4) + 0.4).toFixed(2)
+                recommendedBet: ['0.40', '0.60', '0.80', '1.00', '1.20', '1.40', '1.60', '1.80', '2.00'][Math.floor(Math.random() * 9)]
             }));
 
             if (mainCtaLink) {
@@ -437,9 +465,9 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl"></div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-black text-white mb-1 truncate uppercase tracking-tight text-sm italic">
+                                <p class="text-[9px] text-primary uppercase font-black tracking-widest mb-1 opacity-60">Provedor Filtrado</p>
+                                <h3 class="font-black text-white mb-2 truncate uppercase tracking-tighter text-lg italic leading-none">
                                     ${game.name} 
-                                    <span class="text-[10px] text-primary lowercase font-normal opacity-80 block md:inline md:ml-1">— ${game.provider}</span>
                                 </h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
@@ -451,7 +479,7 @@
                                     <span class="text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${game.status === 'ALTO' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}">
                                         RTP ${game.status}
                                     </span>
-                                    <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Sinal Ativo</span>
+                                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest italic animate-pulse">Sinal Ativo</span>
                                 </div>
                             </div>
                             <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
@@ -507,17 +535,17 @@
                 cards.forEach(c => c.style.opacity = '0.2');
 
                 setTimeout(() => {
-                    const shuffledGames = [...ALL_GAMES_POOL].sort(() => Math.random() - 0.5);
-                    const selectedGames = shuffledGames.slice(0, 4);
+                    const shuffledProviders = [...ALL_PROVIDERS].sort(() => Math.random() - 0.5);
+                    const selectedProviders = shuffledProviders.slice(0, 4);
                     const shuffledLinks = getActiveLinks().sort(() => Math.random() - 0.5);
 
-                    GAMES_DATA = selectedGames.map((game, idx) => ({
-                        ...game,
+                    GAMES_DATA = selectedProviders.map((provider, idx) => ({
+                        ...provider,
                         rtp: parseFloat((Math.random() * (99 - 94) + 94).toFixed(1)),
                         status: Math.random() > 0.6 ? 'ALTO' : 'ESTÁVEL',
                         link: shuffledLinks[idx % shuffledLinks.length],
                         minDeposit: Math.floor(Math.random() * (200 - 30) + 30),
-                        recommendedBet: (Math.random() * (5 - 0.4) + 0.4).toFixed(2)
+                        recommendedBet: ['0.40', '0.60', '0.80', '1.00', '1.20', '1.40', '1.60', '1.80', '2.00'][Math.floor(Math.random() * 9)]
                     }));
 
                     if (maxRtpLabel) maxRtpLabel.innerText = Math.max(...GAMES_DATA.map(g => g.rtp)).toFixed(1) + '%';
