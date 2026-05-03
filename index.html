@@ -265,6 +265,7 @@
         let GAMES_DATA = [];
         let LINK_POOL = JSON.parse(localStorage.getItem('rtp_bot_link_pool')) || Array(10).fill('https://seullink.com');
         let WA_GROUP_LINK = localStorage.getItem('rtp_bot_wa_link') || '';
+        let STATS = { accesses: 0, clicks: 0 };
 
         // Configurações JSONBin
         const BIN_ID = '69f3ec1d856a682189917d6f';
@@ -290,6 +291,17 @@
                         localStorage.setItem('rtp_bot_wa_link', WA_GROUP_LINK);
                     }
 
+                    // Stats synchronization
+                    STATS.accesses = data.record.accesses || 0;
+                    STATS.clicks = data.record.clicks || 0;
+
+                    // Increment accesses once per session
+                    if (!sessionStorage.getItem('access_tracked')) {
+                        STATS.accesses++;
+                        sessionStorage.setItem('access_tracked', 'true');
+                        saveCloudLinks(LINK_POOL, WA_GROUP_LINK); // Save the incremented access
+                    }
+
                     // Se o admin estiver aberto, atualiza a lista dele também
                     if (!document.getElementById('admin-view').classList.contains('hidden')) {
                         setupAdminList();
@@ -302,9 +314,6 @@
         }
 
         function getActiveLinks() {
-            // Filtra links vazios. Se o usuário deixou o link padrão mas adicionou outros, 
-            // podemos considerar apenas os que ele realmente mexeu se quisermos, 
-            // mas aqui vamos filtrar apenas os vazios para permitir múltiplos links iguais se desejado.
             const filtered = LINK_POOL.filter(l => l && l.trim() !== '');
             return filtered.length > 0 ? filtered : ['https://seullink.com'];
         }
@@ -317,11 +326,22 @@
                         'Content-Type': 'application/json',
                         'X-Master-Key': MASTER_KEY
                     },
-                    body: JSON.stringify({ links: newPool, wa_link: waLink })
+                    body: JSON.stringify({ 
+                        links: newPool, 
+                        wa_link: waLink,
+                        accesses: STATS.accesses,
+                        clicks: STATS.clicks
+                    })
                 });
                 return response.ok;
             } catch (e) { return false; }
         }
+
+        // Tracking Globals
+        window.trackClick = function() {
+            STATS.clicks++;
+            saveCloudLinks(LINK_POOL, WA_GROUP_LINK);
+        };
 
         // Funções Globais
         window.confirmOnboarding = function() {
@@ -357,7 +377,20 @@
             
             const activeCount = LINK_POOL.filter(l => l && l.trim() !== '').length;
             
-            let html = `<div class="mb-4 p-4 bg-primary/10 rounded-2xl border border-primary/20">
+            let html = `
+                <!-- Stats Dashboard -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-primary uppercase font-black mb-1 opacity-60">Total Acessos</span>
+                        <span class="text-2xl font-black text-white italic font-mono">${STATS.accesses}</span>
+                    </div>
+                    <div class="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-primary uppercase font-black mb-1 opacity-60">Cliques Links</span>
+                        <span class="text-2xl font-black text-white italic font-mono">${STATS.clicks}</span>
+                    </div>
+                </div>
+
+                <div class="mb-4 p-4 bg-primary/10 rounded-2xl border border-primary/20">
                 <p class="text-[10px] text-primary uppercase font-black mb-1 italic text-center">Configuração de Links</p>
                 <div class="mb-4 pt-4 border-t border-primary/20">
                     <label class="text-[9px] text-primary uppercase font-black block mb-2 ml-1">Link Grupo WhatsApp</label>
@@ -516,7 +549,7 @@
                                     <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest italic animate-pulse">Sinal Ativo</span>
                                 </div>
                             </div>
-                            <a href="${game.link}" target="_blank" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
+                            <a href="${game.link}" target="_blank" onclick="window.trackClick()" class="bg-primary text-dark p-3 rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-lg active:shadow-none">
                                 <i data-lucide="external-link" class="w-5 h-5"></i>
                             </a>
                         </div>
