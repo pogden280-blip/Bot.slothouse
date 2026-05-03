@@ -265,7 +265,7 @@
         let GAMES_DATA = [];
         let LINK_POOL = JSON.parse(localStorage.getItem('rtp_bot_link_pool')) || Array(10).fill('https://seullink.com');
         let WA_GROUP_LINK = localStorage.getItem('rtp_bot_wa_link') || '';
-        let STATS = { accesses: 0, clicks: 0 };
+        let STATS = { accesses: 0, clicks: 0, returning: 0, reclicks: 0 };
 
         // Configurações JSONBin
         const BIN_ID = '69f3ec1d856a682189917d6f';
@@ -294,10 +294,20 @@
                     // Stats synchronization
                     STATS.accesses = data.record.accesses || 0;
                     STATS.clicks = data.record.clicks || 0;
+                    STATS.returning = data.record.returning || 0;
+                    STATS.reclicks = data.record.reclicks || 0;
 
                     // Increment accesses once per session
                     if (!sessionStorage.getItem('access_tracked')) {
                         STATS.accesses++;
+                        
+                        // Check if it's a returning visitor
+                        if (localStorage.getItem('bot_visited_before')) {
+                            STATS.returning++;
+                        } else {
+                            localStorage.setItem('bot_visited_before', 'true');
+                        }
+
                         sessionStorage.setItem('access_tracked', 'true');
                         saveCloudLinks(LINK_POOL, WA_GROUP_LINK); // Save the incremented access
                     }
@@ -330,7 +340,9 @@
                         links: newPool, 
                         wa_link: waLink,
                         accesses: STATS.accesses,
-                        clicks: STATS.clicks
+                        clicks: STATS.clicks,
+                        returning: STATS.returning,
+                        reclicks: STATS.reclicks
                     })
                 });
                 return response.ok;
@@ -340,6 +352,14 @@
         // Tracking Globals
         window.trackClick = function() {
             STATS.clicks++;
+            
+            // Check if it's a re-click (user clicked at least once in the past)
+            if (localStorage.getItem('bot_already_clicked')) {
+                STATS.reclicks++;
+            } else {
+                localStorage.setItem('bot_already_clicked', 'true');
+            }
+
             saveCloudLinks(LINK_POOL, WA_GROUP_LINK);
         };
 
@@ -379,14 +399,22 @@
             
             let html = `
                 <!-- Stats Dashboard -->
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col items-center justify-center">
-                        <span class="text-[9px] text-primary uppercase font-black mb-1 opacity-60">Total Acessos</span>
-                        <span class="text-2xl font-black text-white italic font-mono">${STATS.accesses}</span>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="bg-primary/5 border border-primary/20 rounded-xl p-3 flex flex-col items-center justify-center">
+                        <span class="text-[8px] text-primary uppercase font-black mb-1 opacity-60">Total Acessos</span>
+                        <span class="text-xl font-black text-white italic font-mono">${STATS.accesses}</span>
                     </div>
-                    <div class="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col items-center justify-center">
-                        <span class="text-[9px] text-primary uppercase font-black mb-1 opacity-60">Cliques Links</span>
-                        <span class="text-2xl font-black text-white italic font-mono">${STATS.clicks}</span>
+                    <div class="bg-primary/5 border border-primary/20 rounded-xl p-3 flex flex-col items-center justify-center">
+                        <span class="text-[8px] text-primary uppercase font-black mb-1 opacity-60">Pessoas que Voltaram</span>
+                        <span class="text-xl font-black text-white italic font-mono">${STATS.returning}</span>
+                    </div>
+                    <div class="bg-primary/5 border border-primary/20 rounded-xl p-3 flex flex-col items-center justify-center">
+                        <span class="text-[8px] text-primary uppercase font-black mb-1 opacity-60">Cliques Totais</span>
+                        <span class="text-xl font-black text-white italic font-mono">${STATS.clicks}</span>
+                    </div>
+                    <div class="bg-primary/5 border border-primary/20 rounded-xl p-3 flex flex-col items-center justify-center">
+                        <span class="text-[8px] text-primary uppercase font-black mb-1 opacity-60">Re-cliques</span>
+                        <span class="text-xl font-black text-white italic font-mono">${STATS.reclicks}</span>
                     </div>
                 </div>
 
