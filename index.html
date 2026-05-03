@@ -391,11 +391,37 @@
             }
         };
 
+        function createLinkInputHtml(i, value) {
+            return `<div class="group" id="link-slot-container-${i}">
+                <label class="text-[9px] text-gray-500 uppercase font-black block mb-1 ml-1 group-focus-within:text-primary transition-colors">Slot ${i + 1}</label>
+                <input type="text" id="pool-link-${i}" value="${value}" oninput="window.checkNewInput(${i})"
+                    class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50 text-gray-300 transition-all focus:bg-black/80"
+                    placeholder="https://exemplo.com/link">
+            </div>`;
+        }
+
+        window.checkNewInput = function(index) {
+            const currentInput = document.getElementById(`pool-link-${index}`);
+            const container = document.getElementById('dynamic-links-container');
+            if (!container || !currentInput) return;
+            
+            const inputs = container.querySelectorAll('input[id^="pool-link-"]');
+            const totalInputs = inputs.length;
+            
+            if (index === totalInputs - 1 && currentInput.value.trim() !== '') {
+                const nextIndex = totalInputs;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = createLinkInputHtml(nextIndex, '');
+                container.appendChild(tempDiv.firstElementChild);
+            }
+        };
+
         function setupAdminList() {
             const container = document.getElementById('links-editor');
             if (!container) return;
             
-            const activeCount = LINK_POOL.filter(l => l && l.trim() !== '').length;
+            const activePool = LINK_POOL.filter(l => l && l.trim() !== '');
+            const displayPool = [...activePool, ''];
             
             let html = `
                 <!-- Stats Dashboard -->
@@ -426,18 +452,12 @@
                         class="w-full bg-black/60 border border-primary/30 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary text-gray-300 transition-all font-mono"
                         placeholder="https://chat.whatsapp.com/...">
                 </div>
-                <p class="text-[8px] text-gray-500 uppercase text-center mb-4 font-bold">${activeCount} de 10 slots ativos</p>
-                <div class="grid grid-cols-1 gap-4">`;
+                <p class="text-[8px] text-gray-500 uppercase text-center mb-4 font-bold">${activePool.length} links ativos</p>
+                <div id="dynamic-links-container" class="grid grid-cols-1 gap-4">`;
             
-            for(let i=0; i<10; i++) {
-                const linkValue = LINK_POOL[i] || '';
-                html += `<div class="group">
-                    <label class="text-[9px] text-gray-500 uppercase font-black block mb-1 ml-1 group-focus-within:text-primary transition-colors">Slot ${i + 1}</label>
-                    <input type="text" id="pool-link-${i}" value="${linkValue}" 
-                        class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50 text-gray-300 transition-all focus:bg-black/80"
-                        placeholder="https://exemplo.com/link">
-                </div>`;
-            }
+            displayPool.forEach((linkValue, i) => {
+                html += createLinkInputHtml(i, linkValue);
+            });
             
             html += `</div></div>`;
             container.innerHTML = html;
@@ -450,11 +470,8 @@
                 saveBtn.classList.add('opacity-50', 'pointer-events-none');
             }
 
-            const newPool = [];
-            for(let i=0; i<10; i++) {
-                const input = document.getElementById(`pool-link-${i}`);
-                if (input) newPool.push(input.value.trim());
-            }
+            const inputs = document.querySelectorAll('input[id^="pool-link-"]');
+            const newPool = Array.from(inputs).map(input => input.value.trim()).filter(val => val !== '');
 
             const waLinkInput = document.getElementById('wa-group-link-input');
             const waLink = waLinkInput ? waLinkInput.value.trim() : WA_GROUP_LINK;
